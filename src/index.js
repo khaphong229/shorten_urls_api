@@ -1,14 +1,26 @@
 
 const express = require('express')
 const morgan = require('morgan')
-const route = require('./routes/index')
+const route = require('./routes/v1/index')
 const db = require('./config/db')
+const bodyParser = require('body-parser')
+require('dotenv').config()
+
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
+
+//config body-parser
+app.use(bodyParser.json())
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+)
 
 //config morgan
 app.use(morgan('combined'))
 
+/// connect to database
 db.connect()
 
 //config mvc
