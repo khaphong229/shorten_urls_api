@@ -1,7 +1,7 @@
 
 const express = require('express')
 const router = express.Router()
-const userController = require('../../app/controllers/UserController')
+const userController = require('../../controllers/UserController')
 
 router.delete('/users/:id', userController.deleteUser)
 router.put('/users/:id', userController.updateUser)
