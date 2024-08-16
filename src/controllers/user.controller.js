@@ -1,5 +1,5 @@
 
-const { pool } = require('../configs/db')
+const { pool } = require('../configs/db.config')
 
 class UserController{
     createUser(req, res){

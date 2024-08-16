@@ -1,8 +1,8 @@
 
 const express = require('express')
 const morgan = require('morgan')
-const route = require('./routes/v1/index')
-const db = require('./configs/db')
+const route = require('./routes/v1/index.route')
+const db = require('./configs/db.config')
 const bodyParser = require('body-parser')
 require('dotenv').config()
 
