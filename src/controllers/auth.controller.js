@@ -84,7 +84,7 @@ class AuthController {
                 })
             }
     
-            const accessToken = jwt.sign({ user_id: user.user_id }, process.env.SECRET_CODE)
+            const accessToken = jwt.sign({ user_id: user.user_id }, process.env.SECRET_CODE, { expiresIn: '1d' })
             const { user_id, username, email } = user
     
             res.status(200).json({

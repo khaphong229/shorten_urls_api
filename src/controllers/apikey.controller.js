@@ -35,7 +35,7 @@ class ApiKeyController {
     }
     async getApiKeys(req, res) {
         try {
-            const results = await pool.query('SELECT * FROM apikeys')
+            const results = await pool.query('SELECT * FROM apikeys ORDER BY api_key_id ASC')
 
             if (results.rowCount==0) {
                 return res.status(500).json({
