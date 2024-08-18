@@ -29,8 +29,10 @@ CREATE TABLE users (
 CREATE TABLE apiKeys (
     api_key_id SERIAL PRIMARY KEY,
     api_key VARCHAR(255) UNIQUE NOT NULL,
+    name_api VARCHAR(255) NOT NULL,
     user_id INT REFERENCES users(user_id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tạo bảng shortenUrls

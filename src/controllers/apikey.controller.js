@@ -14,9 +14,10 @@ class ApiKeyController {
                 })
             }
 
+            const name_api = api_key.split('/')[2].split('.')[0]
             const result = await pool.query(
-                'INSERT INTO apikeys (api_key, user_id) VALUES ($1, $2) RETURNING *',
-                [api_key, user_id]
+                'INSERT INTO apikeys (api_key, user_id, name_api) VALUES ($1, $2, $3) RETURNING *',
+                [api_key, user_id, name_api]
             );
     
             res.status(201).json({
