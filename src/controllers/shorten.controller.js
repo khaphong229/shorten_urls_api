@@ -31,7 +31,11 @@ class ShortenController {
             res.status(200).json({
                 success: true,
                 message: 'Rút gọn link thành công.',
-                data: result_save.rows[0]
+                data: {
+                    original_url,
+                    short_url,
+                    api_key_id
+                }
             })
         } catch(error) {
             res.status(500).json({
