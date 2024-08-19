@@ -25,7 +25,11 @@ async function checkAuth(req, res, next) {
         req.user = user
         next()
     } catch (error) {
-        next(error)
+        res.status(403).json({
+            success: false,
+            message: 'Xác thực thất bại.',
+            error: error.message
+        })
     }
 }
 

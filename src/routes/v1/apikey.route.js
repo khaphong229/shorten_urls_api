@@ -6,10 +6,10 @@ const checkAuth = require('../../middlewares/checkAuth.middleware')
 const checkIsMember = require('../../middlewares/checkIsMember.middleware')
 
 
-router.delete('/apikeys/:id', apikeyController.deleteApiKey)
-router.put('/apikeys/:id', apikeyController.updateApiKey)
-router.get('/apikeys/:id', apikeyController.getApiKeysById)
-router.post('/apikeys', apikeyController.createApiKey)
-router.get('/apikeys', apikeyController.getApiKeys)
+router.delete('/apikeys/:id', checkAuth, apikeyController.deleteApiKey)
+router.put('/apikeys/:id', checkAuth, apikeyController.updateApiKey)
+router.get('/apikeys/:id', checkAuth, apikeyController.getApiKeysById)
+router.post('/apikeys', checkAuth, apikeyController.createApiKey)
+router.get('/apikeys', checkAuth, apikeyController.getApiKeys)
 
 module.exports = router
