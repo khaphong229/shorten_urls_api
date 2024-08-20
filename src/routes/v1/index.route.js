@@ -9,7 +9,7 @@ function route(app){
     app.use('/api/v1/', shortenRouter),
     app.use('/api/v1/', apiKeyRouter),
     app.use('/api/v1/auth', authRouter),
-    app.use('/api/v1', userRouter),
+    app.use('/api/v1/', userRouter),
     app.use('/', siteRouter)
 }
 

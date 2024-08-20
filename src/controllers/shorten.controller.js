@@ -5,7 +5,9 @@ const shorten = require('../utils/shorten.util')
 class ShortenController {
     async createShorten(req, res) {
         try {
-            const { original_url, api_key_id } = req.body
+            const user_id = req.user.rows[0].user_id
+            const apiKeyResult = await pool.query('')
+            const { original_url } = req.body
             
             const result1 = await pool.query('SELECT * FROM apikeys WHERE api_key_id = $1', [api_key_id])
             if (result1.rows.length === 0) {
@@ -87,8 +89,7 @@ class ShortenController {
                 error: error.message
             });
         }
-    }
-    
+    }   
     async updateShorten(req, res) {
         try {
             const id = req.params.id;

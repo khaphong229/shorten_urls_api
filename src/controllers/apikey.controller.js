@@ -1,12 +1,21 @@
 
 const { pool } = require('../configs/db.config')
 const getNameApiKey = require('../utils/getNameApiKey.util')
+const apiKeyValidate = require('../validations/apiKey.validation')
 
 class ApiKeyController {
     async createApiKey(req, res) {
         const { api_key } = req.body;
     
         try {
+
+            if (!apiKeyValidate(api_key)) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Định dạng Api Key không đúng với yêu cầu.'
+                })
+            }
+
             const user_id = req.user.rows[0].user_id
             const resultCheckExist = await pool.query('SELECT * FROM apikeys WHERE api_key = $1', [req.body.api_key])
             if (resultCheckExist.rowCount!=0) {
@@ -102,16 +111,15 @@ class ApiKeyController {
     }
     async updateApiKey(req, res) {
         const api_key_id = parseInt(req.params.id);
-        const { api_key } = req.body;
-    
+        const { api_key, is_used } = req.body;
+        
         try {
-
             const result = await pool.query('SELECT * FROM apikeys WHERE api_key_id = $1', [api_key_id])
             if (result.rowCount === 0) {
                 return res.status(404).json({
                     success: false,
                     message: `Api Key id=${api_key_id} không tồn tại.`,
-                });
+                })
             }
 
             if(!req.user.rows[0].is_superuser && result.rows[0].user_id !== req.user.rows[0].user_id) {
@@ -121,22 +129,44 @@ class ApiKeyController {
                 })
             }
 
-            const name_api = getNameApiKey(api_key)
+            let updateQuery = 'UPDATE apikeys SET '
+            let queryValues = [] 
+            let queryIndex = 1
 
-            const updateResult = await pool.query(
-                'UPDATE apikeys SET api_key = $1, name_api = $2 WHERE api_key_id = $3',
-                [api_key, name_api, api_key_id]
-            );
+            if (api_key) {
+                if (!apiKeyValidate(api_key)) {
+                    res.status(400).json({
+                        success: false,
+                        message: 'Định dạng Api Key không đúng với yêu cầu.'
+                    })
+                }
+
+                const name_api = getNameApiKey(api_key)
+                updateQuery += `api_key = $${queryIndex++}, name_api = $${queryIndex++},`
+                queryValues.push(api_key, name_api)
+            }
+
+            if (typeof is_used !== undefined) {
+                updateQuery += ` is_used = $${queryIndex++},`
+                queryValues.push(is_used)
+            }
+            
+            updateQuery = updateQuery.slice(0, -1)
+            updateQuery += ` WHERE api_key_id = $${queryIndex++}`
+            queryValues.push(api_key_id)
+            
+            const updateResult = await pool.query(updateQuery, queryValues)
 
             res.status(200).json({
-                success: true,
-                message: `Cập nhật Api Key id=${api_key_id} thành công.`,
-                data: {
-                    api_key_id,
-                    name_api,
-                    api_key
-                }
-            });
+            success: true,
+            message: `Cập nhật Api Key id=${api_key_id} thành công.`,
+            data: {
+                api_key_id,
+                api_key: api_key || result.rows[0].api_key,
+                name_api: api_key ? getNameApiKey(api_key) : result.rows[0].name_api,
+                is_used: typeof is_used !== 'undefined' ? is_used : result.rows[0].is_used
+            }
+            })
         } catch (error) {
             res.status(500).json({
                 success: false,

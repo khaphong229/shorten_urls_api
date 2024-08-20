@@ -7,7 +7,7 @@ const checkIsMember = require('../../middlewares/checkIsMember.middleware')
 
 
 router.delete('/apikeys/:id', checkAuth, apikeyController.deleteApiKey)
-router.put('/apikeys/:id', checkAuth, apikeyController.updateApiKey)
+router.patch('/apikeys/:id', checkAuth, apikeyController.updateApiKey)
 router.get('/apikeys/:id', checkAuth, apikeyController.getApiKeysById)
 router.post('/apikeys', checkAuth, apikeyController.createApiKey)
 router.get('/apikeys', checkAuth, apikeyController.getApiKeys)
