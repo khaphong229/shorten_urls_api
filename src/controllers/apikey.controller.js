@@ -147,10 +147,17 @@ class ApiKeyController {
             }
 
             if (typeof is_used !== undefined) {
+                const checkResult = await pool.query('SELECT * FROM apikeys WHERE user_id = $1 and is_used = true', [req.user.rows[0].user_id])
+                if (checkResult.rowCount >= 1 && checkResult.rows[0].api_key_id !== api_key_id) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Không thể bật 2 chế độ Api Key cùng 1 lúc. Chỉ để được 1 cái thôi nhé!'
+                    })
+                }
                 updateQuery += ` is_used = $${queryIndex++},`
                 queryValues.push(is_used)
             }
-            
+            updateQuery += ' updated_at = NOW(),'
             updateQuery = updateQuery.slice(0, -1)
             updateQuery += ` WHERE api_key_id = $${queryIndex++}`
             queryValues.push(api_key_id)

@@ -45,3 +45,21 @@ CREATE TABLE shortenUrls (
     click_count INT DEFAULT 0,
     api_key_id INT REFERENCES apiKeys(api_key_id)
 );
+
+
+/////////////
+api phan user: chi admin duoc dung thoi
+api phan quan ly api key: admin co quyen lam tat ca
+user chi duoc phep tao, xem, sua, xoa
+
+api phan quan ly short link
+api co the lam tat ca
+user chi duoc tao, xem tat ca, chi tiet
+
+
+linkvip.org/alskjdklasjd => api short link co id=1 => lay ra short link: link4m.com/sakdjlkasj && kiem tra xem api_key_id !== api_key_id dang bat cua user do hay khong?
+
+vi du 
+link4m.com/sakdjlkasj co api_key_id =1 link4m.com/..........url=
+nhung ma kiem tra thi thay api_key_id = 1 dang tat, co api_key_id = 2 dang bat la 123s.link/........urrl
+=> phai get lai short link theo api_key_id = 2 do de short link nhan duuoc la 123s.link/kajskldj
