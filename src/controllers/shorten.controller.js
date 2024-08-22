@@ -31,11 +31,16 @@ class ShortenController {
             const api_key_url = result1.rows[0].api_key
             const short_url = await shorten(original_url, api_key_url)
             
-            const result_save = await pool.query('INSERT INTO shortenurls (original_url, short_url, api_key_id) VALUES ($1, $2, $3)', [original_url, short_url, api_key_id])
+            const alias = Math.random().toString(36).substring(2, 12)
+
+            const result_save = await pool.query(
+                'INSERT INTO shortenurls (original_url, short_url, api_key_id, alias) VALUES ($1, $2, $3, $4)',
+                [original_url, short_url, api_key_id, alias])
             res.status(200).json({
                 success: true,
                 message: 'Rút gọn link thành công.',
                 data: {
+                    alias,
                     original_url,
                     short_url,
                     api_key_id
@@ -93,6 +98,8 @@ class ShortenController {
             const user_id = resultUserId.rows[0].user_id
             const currentShorten = result.rows[0]
             
+            await pool.query('UPDATE shortenurls SET click_count = click_count + 1 WHERE id = $1', [id])
+
             const apiKeyResult = await pool.query(
                 'SELECT * FROM apikeys WHERE is_used = true AND user_id = $1',
                 [user_id]
@@ -224,6 +231,53 @@ class ShortenController {
                 message: 'Xóa link rút gọn thất bại.',
                 error: error.message
             });
+        }
+    }
+    async filterAndPaginateShorten(req, res) {
+        try {
+            const user_id = req.user.rows[0].user_id
+            const { alias = '', page = 1, limit = 10 } = req.query
+            const offset = (page - 1) * limit
+            
+            let query = `SELECT * FROM shortenurls WHERE api_key_id in (SELECT api_key_id FROM apikeys WHERE user_id = $1)`
+            let countQuery = `SELECT COUNT(*) FROM shortenurls WHERE api_key_id in (SELECT api_key_id FROM apikeys WHERE user_id = $1)`
+            const queryParams = [user_id]
+            const countParams = [user_id]
+    
+            if (alias) {
+                queryParams.push(`%${alias}%`)
+                countParams.push(`%${alias}%`)
+                query += ` AND alias ILIKE $${queryParams.length}`
+                countQuery += ` AND alias ILIKE $${countParams.length}`
+            }
+    
+            queryParams.push(limit, offset)
+            query += ` LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`
+
+            const result = await pool.query(query, queryParams)
+    
+            const countResult = await pool.query(countQuery, countParams)
+    
+            const totalItems = parseInt(countResult.rows[0].count, 10)
+            const totalPages = Math.ceil(totalItems / limit)
+    
+            res.status(200).json({
+                success: true,
+                message: 'Lấy danh sách Short Links thành công.',
+                data: result.rows,
+                pagination: {
+                    totalItems,
+                    totalPages,
+                    currentPage: parseInt(page, 10),
+                    limit: parseInt(limit, 10)
+                }
+            })
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Lấy danh sách Short links thất bại.',
+                error: error.message
+            })
         }
     }
 }

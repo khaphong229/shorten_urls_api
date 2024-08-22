@@ -217,6 +217,53 @@ class ApiKeyController {
             });
         }
     }
+    async filterAndPaginateApiKeys(req, res) {
+        try {
+            const user_id = req.user.rows[0].user_id
+            const { name_api = '', page = 1, limit = 10 } = req.query
+            const offset = (page - 1) * limit
+            
+            let query = `SELECT * FROM apikeys WHERE user_id = $1`
+            let countQuery = `SELECT COUNT(*) FROM apikeys WHERE user_id= $1`
+            const queryParams = [user_id]
+            const countParams = [user_id]
+    
+            if (name_api) {
+                queryParams.push(`%${name_api}%`)
+                countParams.push(`%${name_api}%`)
+                query += ` AND name_api ILIKE $${queryParams.length}`
+                countQuery += ` AND name_api ILIKE $${countParams.length}`
+            }
+    
+            queryParams.push(limit, offset)
+            query += ` LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`
+
+            const result = await pool.query(query, queryParams)
+    
+            const countResult = await pool.query(countQuery, countParams)
+    
+            const totalItems = parseInt(countResult.rows[0].count, 10)
+            const totalPages = Math.ceil(totalItems / limit)
+    
+            res.status(200).json({
+                success: true,
+                message: 'Lấy danh sách Api Key thành công.',
+                data: result.rows,
+                pagination: {
+                    totalItems,
+                    totalPages,
+                    currentPage: parseInt(page, 10),
+                    limit: parseInt(limit, 10)
+                }
+            })
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Lấy danh sách Api Key thất bại.',
+                error: error.message
+            })
+        }
+    }
 }
 
 module.exports = new ApiKeyController()

@@ -38,6 +38,7 @@ CREATE TABLE apiKeys (
 -- Tạo bảng shortenUrls
 CREATE TABLE shortenUrls (
     id SERIAL PRIMARY KEY,
+    alias VARCHAR(255) NOT NULL,
     original_url VARCHAR(2048) NOT NULL,
     short_url VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

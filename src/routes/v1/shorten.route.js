@@ -5,6 +5,7 @@ const shortenController = require('../../controllers/shorten.controller')
 const checkAuth = require('../../middlewares/checkAuth.middleware')
 const checkAdmin = require('../../middlewares/checkIsAdmin.middleware')
 
+router.get('/shortenurls/filter', checkAuth, shortenController.filterAndPaginateShorten)
 router.delete('/shortenurls/:id', checkAuth, checkAdmin, shortenController.deleteShorten)
 router.put('/shortenurls/:id', checkAuth, shortenController.updateShorten)
 router.get('/shortenurls/:id', shortenController.getShortenById)
