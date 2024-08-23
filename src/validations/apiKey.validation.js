@@ -1,12 +1,11 @@
-
 function apiKeyValidate(api_key) {
-    const urlIndex = api_key.indexOf('&url=')
+    const urlIndex = api_key.indexOf('&url=');
 
     if (urlIndex === -1) {
-        return false
+        return false;
     }
-    
-    return true
+
+    return true;
 }
 
-module.exports = apiKeyValidate
+module.exports = apiKeyValidate;

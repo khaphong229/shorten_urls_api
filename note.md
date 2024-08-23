@@ -64,3 +64,37 @@ vi du
 link4m.com/sakdjlkasj co api_key_id =1 link4m.com/..........url=
 nhung ma kiem tra thi thay api_key_id = 1 dang tat, co api_key_id = 2 dang bat la 123s.link/........urrl
 => phai get lai short link theo api_key_id = 2 do de short link nhan duuoc la 123s.link/kajskldj
+
+
+
+Tăng cường bảo mật:
+
+Rate Limiting: Triển khai giới hạn tốc độ để bảo vệ API của bạn khỏi việc lạm dụng.
+Xác thực và làm sạch đầu vào: Đảm bảo tất cả đầu vào được xác thực và làm sạch để ngăn chặn các lỗ hổng bảo mật như SQL injection.
+OAuth2 hoặc JWT: Cân nhắc triển khai OAuth2 hoặc JWT để bảo mật xác thực tốt hơn và có khả năng mở rộng.
+Tài liệu API:
+
+Sử dụng các công cụ như Swagger hoặc Postman để tài liệu hóa các endpoint của API. Điều này sẽ giúp người khác dễ dàng hiểu và sử dụng API của bạn hơn.
+Kiểm thử:
+
+Kiểm thử đơn vị: Viết các bài kiểm thử đơn vị cho các controller và service của bạn.
+Kiểm thử tích hợp: Đảm bảo tất cả các thành phần hoạt động cùng nhau như mong đợi.
+Kiểm thử tải: Sử dụng các công cụ như JMeter hoặc k6 để mô phỏng lượng truy cập lớn và đảm bảo API của bạn có thể xử lý được.
+Tối ưu hóa hiệu suất:
+
+Caching: Triển khai caching cho các dữ liệu được truy cập thường xuyên, sử dụng Redis hoặc công cụ tương tự.
+Tối ưu hóa cơ sở dữ liệu: Phân tích và tối ưu hóa các truy vấn cơ sở dữ liệu của bạn. Thêm các chỉ mục khi cần thiết.
+Ghi nhật ký và giám sát:
+
+Triển khai ghi nhật ký mạnh mẽ bằng cách sử dụng các công cụ như Winston hoặc Morgan.
+Thiết lập giám sát và cảnh báo với các dịch vụ như Prometheus và Grafana.
+Phiên bản hóa API:
+
+Triển khai phiên bản hóa API để duy trì khả năng tương thích ngược khi bạn giới thiệu các tính năng mới.
+Triển khai và CI/CD:
+
+Thiết lập pipeline CI/CD bằng cách sử dụng các công cụ như GitHub Actions hoặc Jenkins.
+Cân nhắc đóng gói ứng dụng của bạn bằng Docker và triển khai trên dịch vụ đám mây như AWS hoặc Heroku.
+Mở rộng quy mô:
+
+Chuẩn bị backend của bạn để mở rộng quy mô ngang bằng cách quản lý trạng thái hợp lý và sử dụng cơ sở dữ liệu phân tán nếu cần.
