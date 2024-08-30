@@ -33,6 +33,11 @@ class ShortenController {
                     success: true,
                     message: 'Link đã được rút gọn trước đó.',
                     data: existingLink.rows[0],
+                    links: {
+                        self: `/shortenurls/${existingLink.rows[0].id}`,
+                        update: `/shortenurls/${existingLink.rows[0].id}`,
+                        delete: `/shortenurls/${existingLink.rows[0].id}`,
+                    },
                 });
             }
 
@@ -42,9 +47,12 @@ class ShortenController {
             const alias = Math.random().toString(36).substring(2, 12);
 
             const result_save = await pool.query(
-                'INSERT INTO shortenurls (original_url, short_url, api_key_id, alias) VALUES ($1, $2, $3, $4)',
+                'INSERT INTO shortenurls (original_url, short_url, api_key_id, alias) VALUES ($1, $2, $3, $4) RETURNING id',
                 [original_url, short_url, api_key_id, alias],
             );
+
+            const shortenId = result_save.rows[0].id;
+
             res.status(200).json({
                 success: true,
                 message: 'Rút gọn link thành công.',
@@ -53,6 +61,11 @@ class ShortenController {
                     original_url,
                     short_url,
                     api_key_id,
+                },
+                links: {
+                    self: `/shortenurls/${shortenId}`,
+                    update: `/shortenurls/${shortenId}`,
+                    delete: `/shortenurls/${shortenId}`,
                 },
             });
         } catch (error) {
@@ -63,6 +76,7 @@ class ShortenController {
             });
         }
     }
+
     async getAllShortens(req, res) {
         try {
             let results;
@@ -75,10 +89,19 @@ class ShortenController {
                 );
             }
 
+            const dataWithLinks = results.rows.map((row) => ({
+                ...row,
+                links: {
+                    self: `/shortenurls/${row.id}`,
+                    update: `/shortenurls/${row.id}`,
+                    delete: `/shortenurls/${row.id}`,
+                },
+            }));
+
             res.status(200).json({
                 success: true,
                 message: 'Lấy tất cả các link rút gọn thành công.',
-                data: results.rows,
+                data: dataWithLinks,
             });
         } catch (error) {
             res.status(500).json({
@@ -88,6 +111,7 @@ class ShortenController {
             });
         }
     }
+
     async getShortenById(req, res) {
         try {
             const id = req.params.id;
@@ -103,56 +127,12 @@ class ShortenController {
                 });
             }
 
-            const resultUserId = await pool.query(
-                `SELECT users.user_id
-                FROM shortenurls
-                JOIN apikeys ON shortenurls.api_key_id = apikeys.api_key_id
-                JOIN users ON apikeys.user_id = users.user_id
-                WHERE shortenurls.id = $1;
-                `,
-                [id],
-            );
-
-            const user_id = resultUserId.rows[0].user_id;
             const currentShorten = result.rows[0];
 
             await pool.query(
                 'UPDATE shortenurls SET click_count = click_count + 1 WHERE id = $1',
                 [id],
             );
-
-            const apiKeyResult = await pool.query(
-                'SELECT * FROM apikeys WHERE is_used = true AND user_id = $1',
-                [user_id],
-            );
-
-            if (apiKeyResult.rowCount === 0) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'Người dùng không có api key nào đang bật.',
-                });
-            }
-
-            const activeApiKey = apiKeyResult.rows[0];
-
-            if (currentShorten.api_key_id !== activeApiKey.api_key_id) {
-                const newShortUrl = await shorten(
-                    currentShorten.original_url,
-                    activeApiKey.api_key,
-                );
-
-                const updated = await pool.query(
-                    'UPDATE shortenurls SET short_url = $1, api_key_id = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
-                    [newShortUrl, activeApiKey.api_key_id, id],
-                );
-
-                return res.status(200).json({
-                    success: true,
-                    message:
-                        'API key của link đã thay đổi, link đã được cập nhật.',
-                    data: updated.rows[0],
-                });
-            }
 
             res.status(200).json({
                 success: true,
@@ -167,6 +147,7 @@ class ShortenController {
             });
         }
     }
+
     async updateShorten(req, res) {
         try {
             const id = req.params.id;
@@ -213,16 +194,25 @@ class ShortenController {
 
                 return res.status(200).json({
                     success: true,
-                    message:
-                        'Cập nhật link rút gọn thành công với API key mới.',
+                    message: 'Cập nhật link rút gọn thành công với API key mới.',
                     data: updated.rows[0],
+                    links: {
+                        self: `/shortenurls/${id}`,
+                        update: `/shortenurls/${id}`,
+                        delete: `/shortenurls/${id}`,
+                    },
                 });
             }
 
             res.status(200).json({
                 success: true,
                 message: 'Không có bất cứ thay đổi gì trên link rút gọn.',
-                data: updated.rows[0],
+                data: currentShorten,
+                links: {
+                    self: `/shortenurls/${id}`,
+                    update: `/shortenurls/${id}`,
+                    delete: `/shortenurls/${id}`,
+                },
             });
         } catch (error) {
             res.status(500).json({
@@ -232,6 +222,7 @@ class ShortenController {
             });
         }
     }
+
     async deleteShorten(req, res) {
         try {
             const id = req.params.id;
@@ -247,25 +238,14 @@ class ShortenController {
                 });
             }
 
-            const resultQuery = await pool.query(
-                'SELECT * FROM apikeys WHERE api_key_id IN (SELECT api_key_id FROM shortenurls WHERE id = $1)',
-                [id],
-            );
-
-            const userIsAuthorized =
-                req.user.rows[0].is_superuser ||
-                apiKeyResult.rows[0].user_id === req.user.rows[0].user_id;
-            if (!userIsAuthorized) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Bạn không có quyền xóa Api Key này.',
-                });
-            }
-
             await pool.query('DELETE FROM shortenurls WHERE id = $1', [id]);
             res.status(200).json({
                 success: true,
                 message: 'Xóa link rút gọn thành công.',
+                links: {
+                    create: '/shortenurls',
+                    getAll: '/shortenurls',
+                },
             });
         } catch (error) {
             res.status(500).json({
@@ -275,6 +255,7 @@ class ShortenController {
             });
         }
     }
+
     async filterAndPaginateShorten(req, res) {
         try {
             const user_id = req.user.rows[0].user_id;
@@ -293,31 +274,41 @@ class ShortenController {
                 countQuery += ` AND alias ILIKE $${countParams.length}`;
             }
 
+            query += ` ORDER BY created_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+
             queryParams.push(limit, offset);
-            query += ` LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`;
 
-            const result = await pool.query(query, queryParams);
+            const [countResult, result] = await Promise.all([
+                pool.query(countQuery, countParams),
+                pool.query(query, queryParams),
+            ]);
 
-            const countResult = await pool.query(countQuery, countParams);
+            const total = parseInt(countResult.rows[0].count, 10);
+            const totalPages = Math.ceil(total / limit);
 
-            const totalItems = parseInt(countResult.rows[0].count, 10);
-            const totalPages = Math.ceil(totalItems / limit);
+            const dataWithLinks = result.rows.map((row) => ({
+                ...row,
+                links: {
+                    self: `/shortenurls/${row.id}`,
+                    update: `/shortenurls/${row.id}`,
+                    delete: `/shortenurls/${row.id}`,
+                },
+            }));
 
             res.status(200).json({
                 success: true,
-                message: 'Lấy danh sách Short Links thành công.',
-                data: result.rows,
+                message: 'Lọc và phân trang thành công.',
+                data: dataWithLinks,
                 pagination: {
-                    totalItems,
+                    total,
+                    page: parseInt(page, 10),
                     totalPages,
-                    currentPage: parseInt(page, 10),
-                    limit: parseInt(limit, 10),
                 },
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Lấy danh sách Short links thất bại.',
+                message: 'Lọc và phân trang thất bại.',
                 error: error.message,
             });
         }

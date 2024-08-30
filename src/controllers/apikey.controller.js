@@ -1,3 +1,4 @@
+const { link } = require('joi');
 const { pool } = require('../configs/db.config');
 const getNameApiKey = require('../utils/getNameApiKey.util');
 const apiKeyValidate = require('../validations/apiKey.validation');
@@ -34,15 +35,18 @@ class ApiKeyController {
                 [api_key, user_id, name_api],
             );
 
+            const createdApiKey = result.rows[0];
+
             res.status(201).json({
                 success: true,
                 message: 'Tạo Api Key thành công.',
-                data: result.rows[0],
+                data: createdApiKey,
                 links: {
-                    detail: `/apikeys/${api_key}`,
-                    update: `/apikeys/${api_key}`,
-                    delete: `/apikeys/${api_key}`,
-                },
+                    self: `/apikeys/${createdApiKey.api_key_id}`, 
+                    update: `/apikeys/${createdApiKey.api_key_id}`, 
+                    delete: `/apikeys/${createdApiKey.api_key_id}`,
+                    filter: `/apikeys/filter?name_api=${name_api}`
+                }
             });
         } catch (error) {
             res.status(500).json({
@@ -73,10 +77,19 @@ class ApiKeyController {
                 });
             }
 
+            const apiKeysWithLinks = results.rows.map( apiKey => ({
+                ...apiKey,
+                links: {
+                    self: `/apikeys/${apiKey.api_key_id}`, 
+                    update: `/apikeys/${apiKey.api_key_id}`,
+                    delete: `/apikeys/${apiKey.api_key_id}`
+                }
+            }));
+
             res.status(200).json({
                 success: true,
                 message: 'Truy vấn api key thành công.',
-                data: results.rows,
+                data: apiKeysWithLinks,
             });
         } catch (error) {
             res.status(500).json({
@@ -116,6 +129,11 @@ class ApiKeyController {
                 success: true,
                 message: `Truy vấn Api Key id=${api_key_id} thành công.`,
                 data: result.rows[0],
+                links: {
+                    self: `/apikeys/${api_key_id}`, 
+                    update: `/apikeys/${api_key_id}`,
+                    delete: `/apikeys/${api_key_id}`
+                }
             });
         } catch (error) {
             res.status(500).json({
@@ -207,6 +225,11 @@ class ApiKeyController {
                             ? is_used
                             : result.rows[0].is_used,
                 },
+                links: {
+                    self: `/apikeys/${api_key_id}`,
+                    update: `/apikeys/${api_key_id}`,
+                    delete: `/apikeys/${api_key_id}`,
+                }
             });
         } catch (error) {
             res.status(500).json({
@@ -250,6 +273,10 @@ class ApiKeyController {
             res.status(200).json({
                 success: true,
                 message: `Xóa Api Key id=${api_key_id} thành công.`,
+                links: {
+                    allApiKeys: '/apikeys',
+                    createNewApiKey: '/apikeys',
+                }
             });
         } catch (error) {
             res.status(500).json({
