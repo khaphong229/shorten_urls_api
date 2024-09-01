@@ -24,17 +24,16 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT TRUE
 );
 
-
 -- Tạo bảng apiKeys
 CREATE TABLE apiKeys (
     api_key_id SERIAL PRIMARY KEY,
     api_key VARCHAR(255) UNIQUE NOT NULL,
     user_id INT REFERENCES users(user_id),
     name_api VARCHAR(255) NOT NULL,
-    priority int NOT NULL
-    maximum_view int NOT NULL
-    description text NULL
-    is_active BOOLEAN DEFAULT false
+    priority INT NOT NULL,
+    maximum_view INT NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -50,6 +49,7 @@ CREATE TABLE shortenUrls (
     click_count INT DEFAULT 0,
     api_key_id INT REFERENCES apiKeys(api_key_id)
 );
+
 
 
 /////////////
